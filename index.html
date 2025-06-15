@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tunzo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #1e1e2f, #121212);
+      color: #fff;
+      min-height: 100vh;
+      padding: 0 10px;
+    }
+
+    header {
+      background-color: #e50914;
+      padding: 20px 10px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      max-height: 40px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: white;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 10px;
+    }
+
+    .search-box {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"] {
+      width: 90%;
+      max-width: 500px;
+      padding: 12px 18px;
+      font-size: 1rem;
+      border-radius: 25px;
+      border: none;
+      outline: none;
+      background-color: #333;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      box-shadow: 0 0 12px #e50914;
+    }
+
+    .audio-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .audio-player {
+      background-color: #222;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+
+    .audio-player:hover {
+      transform: translateY(-5px);
+    }
+
+    .audio-player h3 {
+      margin-bottom: 10px;
+      color: #e50914;
+      font-size: 1.1rem;
+    }
+
+    audio {
+      width: 100%;
+      outline: none;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .controls button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e50914;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .controls button:hover {
+      background-color: #c30710;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .audio-player {
+        padding: 15px;
+      }
+      input[type="text"] {
+        width: 95%;
+      }
+    }
+  </style>
+  <script>
+    let currentIndex = 0;
+    let audioElements;
+
+    function searchSongs() {
+      const input = document.getElementById('searchInput').value.toLowerCase();
+      const players = document.getElementsByClassName('audio-player');
+      for (let player of players) {
+        const audioSrc = player.querySelector('source').src.toLowerCase();
+        player.style.display = audioSrc.includes(input) ? 'block' : 'none';
+      }
+    }
+
+    function playSong(index) {
+      if (audioElements[currentIndex]) {
+        audioElements[currentIndex].pause();
+        audioElements[currentIndex].currentTime = 0;
+      }
+      currentIndex = index;
+      audioElements[currentIndex].play();
+      if ('mediaSession' in navigator) {
+        const songName = audioElements[currentIndex].parentElement.querySelector('h3').innerText;
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: songName,
+        });
+      }
+    }
+
+    function playNext() {
+      if (currentIndex + 1 < audioElements.length) {
+        playSong(currentIndex + 1);
+      }
+    }
+
+    function playPrev() {
+      if (currentIndex - 1 >= 0) {
+        playSong(currentIndex - 1);
+      }
+    }
+
+    function togglePlayPause() {
+      const audio = audioElements[currentIndex];
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      audioElements = document.querySelectorAll('.audio-player audio');
+      audioElements.forEach((audio, index) => {
+        audio.addEventListener('play', () => {
+          currentIndex = index;
+        });
+        audio.addEventListener('ended', () => {
+          playNext();
+        });
+      });
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('previoustrack', playPrev);
+        navigator.mediaSession.setActionHandler('nexttrack', playNext);
+        navigator.mediaSession.setActionHandler('play', () => audioElements[currentIndex].play());
+        navigator.mediaSession.setActionHandler('pause', () => audioElements[currentIndex].pause());
+      }
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Tunzo Logo" class="logo">
+    <h1>𝕋𝕦𝕟𝕫𝕠</h1>
+  </header>
+
+  <div class="container">
+    <div class="search-box">
+      <input type="text" id="searchInput" onkeyup="searchSongs()" placeholder="Search" />
+    </div>
+
+    <div class="audio-list">
+      <div class="audio-player">
+        <h3>Adheeraa</h3>
+        <audio controls>
+          <source src="Adheeraa.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+
+      <div class="audio-player">
+        <h3>Adhaaru</h3>
+        <audio controls>
+          <source src="Adhaaru.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+
+      <div class="audio-player">
+        <h3>Arabic</h3>
+        <audio controls>
+          <source src="Arabic.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+     <div class="audio-player">
+        <h3>Badass</h3>
+        <audio controls>
+          <source src="Badass.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Be Free</h3>
+        <audio controls>
+          <source src="Be Free.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>BeastMode</h3>
+        <audio controls>
+          <source src="BeastMode.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Believer</h3>
+        <audio controls>
+          <source src="Believer.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>ChummaKizhi</h3>
+        <audio controls>
+          <source src="ChummaKizhi.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>EdhirthuNil</h3>
+        <audio controls>
+          <source src="EdhirthuNil.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>EnIniyaThanimaye</h3>
+        <audio controls>
+          <source src="EnIniyaThanimaye.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>EnnoduNeeIrundhal</h3>
+        <audio controls>
+          <source src="EnnoduNeeIrundhal.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>GaandaKannazhagi</h3>
+        <audio controls>
+          <source src="GaandaKannazhagi.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Hukum</h3>
+        <audio controls>
+          <source src="Hukum.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>ilakanaKavithai</h3>
+        <audio controls>
+          <source src="ilakanaKavithai.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>ImScared</h3>
+        <audio controls>
+          <source src="ImScared.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>KaadhalEnKaviye</h3>
+        <audio controls>
+          <source src="KaadhalEnKaviye.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>KaathalaeKaathalae</h3>
+        <audio controls>
+          <source src="KaathalaeKaathalae.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Kalyaana</h3>
+        <audio controls>
+          <source src="Kalyaana.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>KanjaPooKannala</h3>
+        <audio controls>
+          <source src="KanjaPooKannala.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>KannoduKaanberallam</h3>
+        <audio controls>
+          <source src="KannoduKaanberallam.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>KatchiSera</h3>
+        <audio controls>
+          <source src="KatchiSera.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>MaranaMass</h3>
+        <audio controls>
+          <source src="MaranaMass.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>MiruthaMirutha</h3>
+        <audio controls>
+          <source src="MiruthaMirutha.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>NaanAvalIllai</h3>
+        <audio controls>
+          <source src="NaanAvalIllai.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>NaaReady</h3>
+        <audio controls>
+          <source src="NaaReady.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>NeeMaayaNizhal</h3>
+        <audio controls>
+          <source src="NeeMaayaNizhal.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>NeeyumNaanumAnbe</h3>
+        <audio controls>
+          <source src="NeeyumNaanumAnbe.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Odiyamma</h3>
+        <audio controls>
+          <source src="Odiyamma.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>OrdinaryPerson</h3>
+        <audio controls>
+          <source src="OrdinaryPerson.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Pazhagikalam</h3>
+        <audio controls>
+          <source src="Pazhagikalam.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>PettaParaak</h3>
+        <audio controls>
+          <source src="PettaParaak.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>PorkandaSingam</h3>
+        <audio controls>
+          <source src="PorkandaSingam.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Ranjithame</h3>
+        <audio controls>
+          <source src="Ranjithame.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>SeramalPonal</h3>
+        <audio controls>
+          <source src="SeramalPonal.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Shaab</h3>
+        <audio controls>
+          <source src="Shaab.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>ShadesofKadhal</h3>
+        <audio controls>
+          <source src="ShadesofKadhal.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>SirukkiVassam</h3>
+        <audio controls>
+          <source src="SirukkiVaasam.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>SoulOfDoctor</h3>
+        <audio controls>
+          <source src="SoulOfDoctor.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Thee</h3>
+        <audio controls>
+          <source src="Thee.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>TheEagle</h3>
+        <audio controls>
+          <source src="TheEagle.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>TheeyagaThondri</h3>
+        <audio controls>
+          <source src="TheeyagaThondri.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>TheMonsterSong</h3>
+        <audio controls>
+          <source src="TheMonsterSong.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>TopTucker</h3>
+        <audio controls>
+          <source src="TopTucker.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>Ubstoppable</h3>
+        <audio controls>
+          <source src="Unstoppable.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>VaadaVaada</h3>
+        <audio controls>
+          <source src="VaadaVaada.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>VandhaEdam</h3>
+        <audio controls>
+          <source src="VandhaEdam.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>VikramTitleTrack</h3>
+        <audio controls>
+          <source src="VikramTitleTrack.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>VillainYaaru</h3>
+        <audio controls>
+          <source src="VillainYaaru.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+    <div class="audio-player">
+        <h3>YennaiMaatrumKadhale</h3>
+        <audio controls>
+          <source src="YennaiMaatrumKadhale.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="controls">
+          <button onclick="playPrev()">⏮ Prev</button>
+          <button onclick="playNext()">Next ⏭</button>
+        </div>
+      </div>
+
+
+
+    </div>
+  </div>
+</body>
+</html>
